@@ -1,0 +1,38 @@
+version: '3'
+services:
+  discovery:
+    image: eurekaserver:latest
+    ports:
+      - 8761:8761
+    environment:
+      - JAVA_OPTS=
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"  
+  manage-currency:
+    image: manage-currency:latest
+    environment:
+      - JAVA_OPTS=
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/
+    depends_on:
+      - discovery
+    ports:
+      - 8084:8084
+  convert-currency:
+    image: convert-currency:latest
+    environment:
+      - JAVA_OPTS=
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/
+    restart: on-failure
+    depends_on:
+      - discovery
+      - manage-currency
+      - zipkin
+    ports:
+      - 8085:8085
+    links:
+      - discovery
+    
+  
